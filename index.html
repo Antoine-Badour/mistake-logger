@@ -212,26 +212,34 @@
     async function loadSupabaseConfig() {
       try {
         const response = await fetch("/api/config");
-        if (!response.ok) return null;
+        if (!response.ok) {
+          return {
+            supabaseUrl: DEFAULT_SUPABASE_URL,
+            supabaseAnonKey: DEFAULT_SUPABASE_ANON_KEY
+          };
+        }
+
         const config = await response.json();
         const resolvedUrl = config.supabaseUrl || DEFAULT_SUPABASE_URL;
         const resolvedAnonKey = config.supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
-        if (!resolvedUrl || !resolvedAnonKey) return null;
         return {
           supabaseUrl: resolvedUrl,
           supabaseAnonKey: resolvedAnonKey
         };
       } catch (error) {
         console.warn("Could not load Supabase config:", error);
-        return null;
+        return {
+          supabaseUrl: DEFAULT_SUPABASE_URL,
+          supabaseAnonKey: DEFAULT_SUPABASE_ANON_KEY
+        };
       }
     }
 
     async function initSupabase() {
       const config = await loadSupabaseConfig();
-      if (!config || !window.supabase || !window.supabase.createClient) {
+      if (!window.supabase || !window.supabase.createClient) {
         useSupabase = false;
-        setStatus("Supabase is not configured yet. Your data will stay in this browser until you add your project URL and anon key.", true);
+        setStatus("Supabase script is not loading right now. Your data will stay local until the site is served correctly.", true);
         return;
       }
 
