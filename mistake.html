@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A personal SAT mistake tracker with username-based login." />
+  <title>SAT Mistake Logger</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #07111f;
+      --panel: #111c2e;
+      --panel-2: #17263d;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-2: #22c55e;
+      --danger: #ef4444;
+      --border: #243447;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(135deg, var(--bg), #0f172a 70%);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    .hero {
+      padding: 24px 20px 12px;
+      background: rgba(15, 23, 42, 0.85);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    h1 { margin: 0 0 6px; font-size: 28px; }
+
+    .subtitle { margin: 0; color: var(--muted); max-width: 650px; line-height: 1.5; }
+
+    .pill {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.16);
+      color: #bae6fd;
+      font-size: 14px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .login-card {
+      padding: 24px;
+      max-width: 460px;
+      margin: 40px auto 0;
+      text-align: center;
+    }
+
+    .login-card input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+      margin: 10px 0 14px;
+    }
+
+    .login-card button,
+    .primary-btn,
+    .ghost-btn,
+    .btn-small {
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+    }
+
+    .login-card button:hover,
+    .primary-btn:hover,
+    .ghost-btn:hover,
+    .btn-small:hover { transform: translateY(-1px); }
+
+    .primary-btn,
+    .login-card button {
+      background: var(--accent-2);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+
+    .ghost-btn {
+      background: #334155;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .hidden { display: none !important; }
+
+    .app-top {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .stat {
+      padding: 14px;
+      background: var(--panel-2);
+      border-radius: 12px;
+      border: 1px solid var(--border);
+    }
+
+    .stat strong { display: block; font-size: 22px; margin-top: 4px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding: 18px;
+    }
+
+    .form-grid input,
+    .form-grid select,
+    .form-grid textarea {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+      color: var(--text);
+    }
+
+    .form-grid textarea {
+      min-height: 90px;
+      resize: vertical;
+      grid-column: 1 / -1;
+    }
+
+    .form-grid button {
+      grid-column: 1 / -1;
+      width: 100%;
+    }
+
+    .controls {
+      padding: 0 18px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .controls button.active {
+      background: var(--accent);
+      color: #082f49;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: rgba(7, 17, 31, 0.95);
+      color: #cbd5e1;
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+
+    .done {
+      opacity: 0.65;
+      text-decoration: line-through;
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .btn-small {
+      padding: 7px 10px;
+      border-radius: 8px;
+      color: white;
+      font-size: 12px;
+    }
+
+    .solve { background: var(--accent); color: #082f49; font-weight: bold; }
+    .delete { background: var(--danger); }
+
+    .empty {
+      padding: 18px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .stats { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .hero-inner, .app-top { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <h1>SAT Mistake Logger</h1>
+        <p class="subtitle">Track your SAT mistakes by topic, source, and note, with a private space for each username.</p>
+      </div>
+      <div class="pill" id="loginBadge">Private dashboard</div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section id="loginScreen" class="card login-card">
+      <h2>Enter your username</h2>
+      <p class="subtitle">Just type a username to start. No password needed.</p>
+      <input id="loginInput" type="text" placeholder="e.g. Alex" />
+      <button id="loginButton">Open my dashboard</button>
+    </section>
+
+    <section id="appScreen" class="hidden">
+      <div class="card app-top">
+        <div>
+          <h2 style="margin:0 0 4px;">Welcome, <span id="currentUserName"></span></h2>
+          <p class="subtitle" style="margin:0;">Your mistakes stay separate from everyone else’s.</p>
+        </div>
+        <div class="actions">
+          <button class="ghost-btn" id="switchUserButton">Switch user</button>
+          <button class="ghost-btn" id="clearAllButton">Clear my mistakes</button>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat card">
+          <span>Total</span>
+          <strong id="totalCount">0</strong>
+        </div>
+        <div class="stat card">
+          <span>Active</span>
+          <strong id="activeCount">0</strong>
+        </div>
+        <div class="stat card">
+          <span>Solved</span>
+          <strong id="doneCount">0</strong>
+        </div>
+      </div>
+
+      <div class="card">
+        <form id="mistakeForm" class="form-grid">
+          <input id="website" placeholder="Website / Source" required />
+          <input id="unit" placeholder="Unit / Section" />
+
+          <select id="concept">
+            <option value="">Select SAT Concept</option>
+            <option>Linear Equations</option>
+            <option>Quadratic Equations</option>
+            <option>Functions</option>
+            <option>Systems of Equations</option>
+            <option>Ratios & Proportions</option>
+            <option>Percentages</option>
+            <option>Word Problems</option>
+            <option>Geometry - Angles</option>
+            <option>Geometry - Circles</option>
+            <option>Geometry - Triangles</option>
+            <option>Data Analysis</option>
+            <option>Probability</option>
+            <option>Exponents</option>
+            <option>Polynomials</option>
+            <option>Reading - Main Idea</option>
+            <option>Reading - Inference</option>
+            <option>Grammar - Punctuation</option>
+            <option>Grammar - Sentence Structure</option>
+          </select>
+
+          <input id="note" placeholder="Mistake / Note" />
+          <textarea id="details" placeholder="Extra details (optional)"></textarea>
+          <button class="primary-btn" type="submit">Add mistake</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="controls">
+          <button class="ghost-btn filter-btn active" data-filter="all">All</button>
+          <button class="ghost-btn filter-btn" data-filter="active">Active</button>
+          <button class="ghost-btn filter-btn" data-filter="done">Solved</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Website</th>
+              <th>Unit</th>
+              <th>Concept</th>
+              <th>Note</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="list"></tbody>
+        </table>
+        <div id="emptyState" class="empty">No mistakes yet. Add your first one above.</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_CURRENT_USER = "mistakeLogger.currentUser";
+    let currentUser = localStorage.getItem(STORAGE_CURRENT_USER) || "";
+    let mistakes = [];
+    let currentFilter = "all";
+
+    const loginScreen = document.getElementById("loginScreen");
+    const appScreen = document.getElementById("appScreen");
+    const loginInput = document.getElementById("loginInput");
+    const currentUserName = document.getElementById("currentUserName");
+    const loginBadge = document.getElementById("loginBadge");
+    const list = document.getElementById("list");
+    const emptyState = document.getElementById("emptyState");
+
+    const API_BASE = (window.location.origin && window.location.origin !== "null")
+      ? window.location.origin
+      : "http://localhost:8000";
+    let useLocalStorageFallback = false;
+
+    function getStorageKey(username) {
+      return `mistakeLogger.mistakes.${username.trim().toLowerCase()}`;
+    }
+
+    function loadMistakesLocal(username) {
+      const raw = localStorage.getItem(getStorageKey(username));
+      return raw ? JSON.parse(raw) : [];
+    }
+
+    function saveMistakesLocal(username, list) {
+      localStorage.setItem(getStorageKey(username), JSON.stringify(list));
+    }
+
+    async function apiRequest(path, options = {}) {
+      try {
+        const response = await fetch(`${API_BASE}${path}`, {
+          headers: { "Content-Type": "application/json" },
+          ...options
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText || `API request failed: ${response.status}`);
+        }
+        return response.json();
+      } catch (error) {
+        useLocalStorageFallback = true;
+        console.warn("API unavailable, falling back to local storage:", error);
+        throw error;
+      }
+    }
+
+    async function loadMistakes(username) {
+      if (useLocalStorageFallback) {
+        return loadMistakesLocal(username);
+      }
+
+      try {
+        const data = await apiRequest(`/api/mistakes?username=${encodeURIComponent(username)}`);
+        return data.mistakes || [];
+      } catch (error) {
+        return loadMistakesLocal(username);
+      }
+    }
+
+    async function saveMistakes() {
+      if (!currentUser) return;
+      await apiRequest("/api/mistakes", {
+        method: "POST",
+        body: JSON.stringify({
+          username: currentUser,
+          website: document.getElementById("website").value.trim(),
+          unit: document.getElementById("unit").value.trim(),
+          concept: document.getElementById("concept").value,
+          note: document.getElementById("note").value.trim(),
+          details: document.getElementById("details").value.trim(),
+          done: false
+        })
+      });
+    }
+
+    function showLogin() {
+      loginScreen.classList.remove("hidden");
+      appScreen.classList.add("hidden");
+      loginInput.value = "";
+      loginInput.focus();
+      loginBadge.textContent = "Private dashboard";
+    }
+
+    function showApp() {
+      loginScreen.classList.add("hidden");
+      appScreen.classList.remove("hidden");
+      currentUserName.textContent = currentUser;
+      loginBadge.textContent = `Signed in as ${currentUser}`;
+      render();
+    }
+
+    async function login() {
+      const username = loginInput.value.trim();
+      if (!username) {
+        alert("Please enter a username.");
+        return;
+      }
+
+      currentUser = username;
+      localStorage.setItem(STORAGE_CURRENT_USER, currentUser);
+      try {
+        const data = await apiRequest("/api/login", {
+          method: "POST",
+          body: JSON.stringify({ username: currentUser })
+        });
+        mistakes = data.mistakes || [];
+      } catch (error) {
+        mistakes = loadMistakesLocal(currentUser);
+      }
+      showApp();
+    }
+
+    function switchUser() {
+      localStorage.removeItem(STORAGE_CURRENT_USER);
+      currentUser = "";
+      showLogin();
+    }
+
+    async function addMistake(event) {
+      event.preventDefault();
+      if (!currentUser) return;
+
+      const website = document.getElementById("website").value.trim();
+      const unit = document.getElementById("unit").value.trim();
+      const concept = document.getElementById("concept").value;
+      const note = document.getElementById("note").value.trim();
+      const details = document.getElementById("details").value.trim();
+
+      if (!website && !unit && !concept && !note && !details) {
+        return;
+      }
+
+      const item = {
+        id: Date.now(),
+        website,
+        unit,
+        concept,
+        note,
+        details,
+        done: false
+      };
+
+      if (useLocalStorageFallback) {
+        mistakes.unshift(item);
+        saveMistakesLocal(currentUser, mistakes);
+      } else {
+        try {
+          const data = await apiRequest("/api/mistakes", {
+            method: "POST",
+            body: JSON.stringify({
+              username: currentUser,
+              website,
+              unit,
+              concept,
+              note,
+              details,
+              done: false
+            })
+          });
+          mistakes = data.mistakes || [];
+        } catch (error) {
+          mistakes.unshift(item);
+          saveMistakesLocal(currentUser, mistakes);
+        }
+      }
+
+      render();
+      document.getElementById("mistakeForm").reset();
+      document.getElementById("website").focus();
+    }
+
+    async function toggleDone(id) {
+      const target = mistakes.find((m) => m.id === id);
+      if (!target) return;
+      const newDone = !target.done;
+
+      if (useLocalStorageFallback) {
+        mistakes = mistakes.map((m) => (m.id === id ? { ...m, done: newDone } : m));
+        saveMistakesLocal(currentUser, mistakes);
+      } else {
+        try {
+          const data = await apiRequest(`/api/mistakes/${id}`, {
+            method: "PATCH",
+            body: JSON.stringify({ username: currentUser, done: newDone })
+          });
+          mistakes = data.mistakes || [];
+        } catch (error) {
+          mistakes = mistakes.map((m) => (m.id === id ? { ...m, done: newDone } : m));
+          saveMistakesLocal(currentUser, mistakes);
+          useLocalStorageFallback = true;
+        }
+      }
+      render();
+    }
+
+    async function deleteItem(id) {
+      if (useLocalStorageFallback) {
+        mistakes = mistakes.filter((m) => m.id !== id);
+        saveMistakesLocal(currentUser, mistakes);
+      } else {
+        try {
+          const data = await apiRequest(`/api/mistakes/${id}?username=${encodeURIComponent(currentUser)}`, {
+            method: "DELETE"
+          });
+          mistakes = data.mistakes || [];
+        } catch (error) {
+          mistakes = mistakes.filter((m) => m.id !== id);
+          saveMistakesLocal(currentUser, mistakes);
+          useLocalStorageFallback = true;
+        }
+      }
+      render();
+    }
+
+    async function clearAll() {
+      if (!confirm("Delete all your mistakes?")) return;
+
+      if (useLocalStorageFallback) {
+        mistakes = [];
+        saveMistakesLocal(currentUser, mistakes);
+      } else {
+        try {
+          const data = await apiRequest(`/api/mistakes?username=${encodeURIComponent(currentUser)}`, {
+            method: "DELETE"
+          });
+          mistakes = data.mistakes || [];
+        } catch (error) {
+          mistakes = [];
+          saveMistakesLocal(currentUser, mistakes);
+          useLocalStorageFallback = true;
+        }
+      }
+      render();
+    }
+
+    function setFilter(filter) {
+      currentFilter = filter;
+      document.querySelectorAll(".filter-btn").forEach((button) => {
+        button.classList.toggle("active", button.dataset.filter === filter);
+      });
+      render();
+    }
+
+    function render() {
+      const filtered = mistakes.filter((m) => {
+        if (currentFilter === "active") return !m.done;
+        if (currentFilter === "done") return m.done;
+        return true;
+      });
+
+      list.innerHTML = "";
+      emptyState.classList.toggle("hidden", filtered.length > 0);
+
+      document.getElementById("totalCount").textContent = mistakes.length;
+      document.getElementById("activeCount").textContent = mistakes.filter((m) => !m.done).length;
+      document.getElementById("doneCount").textContent = mistakes.filter((m) => m.done).length;
+
+      filtered.forEach((m) => {
+        const row = document.createElement("tr");
+        if (m.done) row.classList.add("done");
+
+        const websiteCell = document.createElement("td");
+        websiteCell.textContent = m.website || "—";
+
+        const unitCell = document.createElement("td");
+        unitCell.textContent = m.unit || "—";
+
+        const conceptCell = document.createElement("td");
+        conceptCell.textContent = m.concept || "—";
+
+        const noteCell = document.createElement("td");
+        noteCell.innerHTML = `${m.note || "—"}${m.details ? `<br><span style="color:#94a3b8;">${m.details}</span>` : ""}`;
+
+        const actionsCell = document.createElement("td");
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const solveButton = document.createElement("button");
+        solveButton.className = "btn-small solve";
+        solveButton.textContent = m.done ? "Undo" : "Solve";
+        solveButton.onclick = () => toggleDone(m.id);
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "btn-small delete";
+        deleteButton.textContent = "Delete";
+        deleteButton.onclick = () => deleteItem(m.id);
+
+        actions.appendChild(solveButton);
+        actions.appendChild(deleteButton);
+        actionsCell.appendChild(actions);
+
+        row.appendChild(websiteCell);
+        row.appendChild(unitCell);
+        row.appendChild(conceptCell);
+        row.appendChild(noteCell);
+        row.appendChild(actionsCell);
+        list.appendChild(row);
+      });
+    }
+
+    document.getElementById("loginButton").addEventListener("click", login);
+    loginInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") login();
+    });
+
+    document.getElementById("mistakeForm").addEventListener("submit", addMistake);
+    document.getElementById("switchUserButton").addEventListener("click", switchUser);
+    document.getElementById("clearAllButton").addEventListener("click", clearAll);
+
+    document.querySelectorAll(".filter-btn").forEach((button) => {
+      button.addEventListener("click", () => setFilter(button.dataset.filter));
+    });
+
+    async function init() {
+      if (currentUser) {
+        mistakes = await loadMistakes(currentUser);
+        showApp();
+      } else {
+        showLogin();
+      }
+    }
+
+    init();
+  </script>
+</body>
+</html>
