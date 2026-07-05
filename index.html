@@ -166,7 +166,7 @@
     let mistakes = [];
     let currentFilter = "all";
     let useSupabase = false;
-    let supabase = null;
+    let supabaseClient = null;
 
     const loginScreen = document.getElementById("loginScreen");
     const appScreen = document.getElementById("appScreen");
@@ -228,12 +228,12 @@
         return;
       }
 
-      supabase = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
+      supabaseClient = window.supabase.createClient(config.supabaseUrl, config.supabaseAnonKey, {
         auth: { persistSession: false, autoRefreshToken: false }
       });
 
       try {
-        const { error } = await supabase.from("mistakes").select("id").limit(1);
+        const { error } = await supabaseClient.from("mistakes").select("id").limit(1);
         if (error) throw error;
         useSupabase = true;
         setStatus("Supabase sync is active.");
@@ -245,9 +245,9 @@
     }
 
     async function loadMistakes(username) {
-      if (useSupabase && supabase) {
+      if (useSupabase && supabaseClient) {
         try {
-          const { data, error } = await supabase
+          const { data, error } = await supabaseClient
             .from("mistakes")
             .select("id, website, unit, concept, note, details, done")
             .eq("username", username)
@@ -262,7 +262,7 @@
     }
 
     async function addMistakeToSupabase(payload) {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("mistakes")
         .insert(payload)
         .select("id, website, unit, concept, note, details, done");
@@ -271,7 +271,7 @@
     }
 
     async function updateMistakeInSupabase(id, updates) {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("mistakes")
         .update(updates)
         .eq("id", id)
@@ -282,7 +282,7 @@
     }
 
     async function deleteMistakeInSupabase(id) {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("mistakes")
         .delete()
         .eq("id", id)
@@ -292,7 +292,7 @@
     }
 
     async function clearAllInSupabase() {
-      const { error } = await supabase.from("mistakes").delete().eq("username", currentUser);
+      const { error } = await supabaseClient.from("mistakes").delete().eq("username", currentUser);
       if (error) throw error;
       return [];
     }
@@ -374,7 +374,7 @@
       const newDone = !target.done;
 
       try {
-        if (useSupabase && supabase) {
+        if (useSupabase && supabaseClient) {
           mistakes = await updateMistakeInSupabase(id, { done: newDone });
         } else {
           mistakes = mistakes.map((m) => (m.id === id ? { ...m, done: newDone } : m));
@@ -390,7 +390,7 @@
 
     async function deleteItem(id) {
       try {
-        if (useSupabase && supabase) {
+        if (useSupabase && supabaseClient) {
           mistakes = await deleteMistakeInSupabase(id);
         } else {
           mistakes = mistakes.filter((m) => m.id !== id);
@@ -408,7 +408,7 @@
       if (!confirm("Delete all your mistakes?")) return;
 
       try {
-        if (useSupabase && supabase) {
+        if (useSupabase && supabaseClient) {
           mistakes = await clearAllInSupabase();
         } else {
           mistakes = [];
