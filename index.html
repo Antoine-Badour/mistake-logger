@@ -162,6 +162,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const STORAGE_CURRENT_USER = "mistakeLogger.currentUser";
+    const DEFAULT_SUPABASE_URL = "https://prjkktsdmvbmdqduvqzz.supabase.co";
+    const DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InByamtrdHNkbXZibWRxZHV2cXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMyNDAzNjAsImV4cCI6MjA5ODgxNjM2MH0.Fxa2UoeUhQMDpt_HqeFLeBB-BLqXuTAOeqlYupsx-0M";
     let currentUser = localStorage.getItem(STORAGE_CURRENT_USER) || "";
     let mistakes = [];
     let currentFilter = "all";
@@ -212,8 +214,13 @@
         const response = await fetch("/api/config");
         if (!response.ok) return null;
         const config = await response.json();
-        if (!config.supabaseUrl || !config.supabaseAnonKey) return null;
-        return config;
+        const resolvedUrl = config.supabaseUrl || DEFAULT_SUPABASE_URL;
+        const resolvedAnonKey = config.supabaseAnonKey || DEFAULT_SUPABASE_ANON_KEY;
+        if (!resolvedUrl || !resolvedAnonKey) return null;
+        return {
+          supabaseUrl: resolvedUrl,
+          supabaseAnonKey: resolvedAnonKey
+        };
       } catch (error) {
         console.warn("Could not load Supabase config:", error);
         return null;
